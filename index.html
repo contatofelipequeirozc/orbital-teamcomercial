@@ -833,69 +833,96 @@ tbody tr:last-child td{border-bottom:none}
       <!-- IMPORTAR LEADS -->
       <div class="pg" id="pg-importar">
         <div class="sh">
-          <div><div class="st">📥 Importar Leads</div><div class="ss">Cole o CSV e delegue para uma vendedora</div></div>
+          <div><div class="st">📥 Importar Leads</div><div class="ss">Importe e delegue leads para sua equipe</div></div>
         </div>
 
         <!-- TEMPLATE CSV -->
-        <div class="cw" style="margin-bottom:16px;background:rgba(16,185,129,.04);border-color:rgba(16,185,129,.2)">
-          <div class="cw-h" style="color:var(--ok)">📋 Template CSV — Copie e use no Claude para gerar leads</div>
-          <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.6">Peça ao Claude: <em style="color:var(--p3)">"Gere 20 leads de [nicho] em [cidade] no formato CSV abaixo com dicas reais de abordagem para cada um"</em></div>
-          <div style="background:var(--bg3);border-radius:8px;padding:12px;font-family:monospace;font-size:10px;color:var(--p3);overflow-x:auto;white-space:nowrap;border:1px solid rgba(139,92,246,.15)">nome,empresa,telefone,email,instagram,cidade,segmento,cargo,tamanho_empresa,dor_principal,melhor_horario,dica_prospeccao,dica_rapport,notas</div>
-          <div style="margin-top:8px;font-size:10px;color:var(--tx3)">
-            <strong style="color:var(--tx2)">Colunas obrigatorias:</strong> nome, empresa, telefone
-            <br><strong style="color:var(--tx2)">Colunas recomendadas:</strong> segmento, dor_principal, dica_prospeccao, dica_rapport
-            <br><strong style="color:var(--tx2)">Colunas opcionais:</strong> instagram, linkedin, cargo, tamanho_empresa, melhor_horario, notas
+        <div class="cw" style="border-color:rgba(16,185,129,.2);background:rgba(16,185,129,.03)">
+          <div class="cw-h" style="color:var(--ok)">📋 Template CSV — Como usar com o Claude</div>
+          <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.7">
+            Abra uma conversa nova no Claude e diga:<br>
+            <span style="background:var(--pd);color:var(--p3);padding:6px 10px;border-radius:6px;display:inline-block;margin-top:4px;font-size:11px;font-style:italic">"Gere 20 leads de clinicas de estetica em Salvador no formato CSV abaixo, com dicas reais e personalizadas de abordagem e rapport para cada lead"</span>
           </div>
-          <button class="btn bg2 btn-sm" style="margin-top:10px" onclick="copiarTemplateCSV()">📋 Copiar Template</button>
+          <div style="background:var(--bg3);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:10px;color:var(--p3);border:1px solid rgba(139,92,246,.15);overflow-x:auto;white-space:nowrap">nome,empresa,telefone,email,instagram,cidade,segmento,cargo,tamanho_empresa,dor_principal,melhor_horario,dica_prospeccao,dica_rapport,notas</div>
+          <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--tx3)">
+            <span><strong style="color:var(--ok)">Obrigatorio:</strong> nome, empresa, telefone</span>
+            <span><strong style="color:var(--p3)">Recomendado:</strong> segmento, dor_principal, dica_prospeccao, dica_rapport</span>
+            <span><strong style="color:var(--tx2)">Opcional:</strong> instagram, cargo, cidade, notas</span>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:8px">
+            <button class="btn bs2 btn-sm" onclick="copiarTemplateCSV()">📋 Copiar Template</button>
+          </div>
         </div>
 
         <!-- CONFIGURAR LOTE -->
-        <div class="dg2">
-          <div class="cw">
-            <div class="cw-h">⚙️ Configurar Lote</div>
-            <div class="fg"><label class="fl">Nome do Lote</label><input class="fi" type="text" id="imp-nome-lote" placeholder="Ex: Clinicas Salvador Abril"></div>
-            <div class="fg"><label class="fl">Atribuir para Vendedora</label>
+        <div class="dg2" style="margin-bottom:16px">
+          <div class="cw" style="margin:0">
+            <div class="cw-h">⚙️ Configurar Lote de Importacao</div>
+            <div class="fg"><label class="fl">Nome do Lote *</label><input class="fi" type="text" id="imp-nome-lote" placeholder="Ex: Clinicas Salvador Abril 2026"></div>
+            <div class="fg">
+              <label class="fl">Atribuir para Vendedora *</label>
               <select class="fs" id="imp-vendedora">
-                <option value="">Selecione a vendedora</option>
+                <option value="">Carregando...</option>
               </select>
             </div>
-            <div class="fg"><label class="fl">Nicho do Lote</label>
+            <div class="fg"><label class="fl">Nicho</label>
               <select class="fs" id="imp-nicho">
                 <option value="">Selecione o nicho</option>
               </select>
             </div>
-            <div class="fg"><label class="fl">Prioridade dos Leads</label>
+            <div class="fg"><label class="fl">Prioridade</label>
               <select class="fs" id="imp-prioridade">
                 <option value="alta">Alta</option>
                 <option value="media" selected>Media</option>
                 <option value="baixa">Baixa</option>
               </select>
             </div>
-            <div class="fg"><label class="fl">Observacoes para a Vendedora</label>
-              <textarea class="fa" id="imp-obs" style="min-height:72px" placeholder="Instrucoes especificas, contexto do nicho, abordagem recomendada..."></textarea>
+            <div class="fg"><label class="fl">Instrucoes para a Vendedora</label>
+              <textarea class="fa" id="imp-obs" style="min-height:72px" placeholder="Ex: Aborde primeiro pelos de maior cargo. Evitar ligar antes das 9h..."></textarea>
             </div>
           </div>
-          <div class="cw">
-            <div class="cw-h">📊 Preview do Lote</div>
-            <div id="imp-preview" style="font-size:12px;color:var(--tx3);padding:20px;text-align:center">
-              <div style="font-size:32px;margin-bottom:8px">📋</div>
-              Cole o CSV abaixo para ver o preview
+          <div class="cw" style="margin:0">
+            <div class="cw-h">👁️ Preview do Lote</div>
+            <div id="imp-preview" style="min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--tx3);font-size:12px;text-align:center;gap:8px">
+              <div style="font-size:40px;opacity:.3">📋</div>
+              <div>Cole o CSV ou suba um arquivo</div>
             </div>
           </div>
         </div>
 
-        <!-- CSV INPUT -->
+        <!-- CSV INPUT E UPLOAD -->
         <div class="cw">
-          <div class="cw-h">📄 Cole o CSV Aqui</div>
-          <textarea class="fa" id="imp-csv" style="min-height:180px;font-family:monospace;font-size:11px" placeholder="nome,empresa,telefone,email,instagram,cidade,segmento,cargo,tamanho_empresa,dor_principal,melhor_horario,dica_prospeccao,dica_rapport,notas&#10;Joao Silva,Clinica Vida,71999991111,joao@clinica.com,@joaosilva,Salvador,Saude,Diretor,Pequena,Agenda cheia de manual,Manha,Aborde pelo Whats perguntando sobre agenda,Mencione que voce ajuda clinicas como a dele..." oninput="previewCSV()"></textarea>
-          <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+          <div class="cw-h">📄 Dados dos Leads</div>
+          <div class="tabs" style="margin-bottom:14px">
+            <button class="tab on" id="tab-colar" onclick="showImpTab('colar',this)">📝 Colar CSV</button>
+            <button class="tab" id="tab-upload" onclick="showImpTab('upload',this)">📁 Upload de Arquivo</button>
+          </div>
+
+          <!-- Tab Colar -->
+          <div id="imp-tab-colar">
+            <textarea class="fa" id="imp-csv" style="min-height:160px;font-family:monospace;font-size:11px" placeholder="nome,empresa,telefone,email,instagram,cidade,segmento,cargo,tamanho_empresa,dor_principal,melhor_horario,dica_prospeccao,dica_rapport,notas&#10;Joao Silva,Clinica Vida,71999991111,joao@clinica.com,@clinicavida,Salvador,Saude,Diretor,Pequena,Agenda vazia,Manha,Pergunte sobre agendamentos perdidos,Fale que voce ja ajudou clinicas similares..." oninput="previewCSV()"></textarea>
+          </div>
+
+          <!-- Tab Upload -->
+          <div id="imp-tab-upload" style="display:none">
+            <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:160px;border:2px dashed var(--bdr2);border-radius:10px;cursor:pointer;transition:all .2s;padding:24px;text-align:center" id="upload-area" ondragover="event.preventDefault();this.style.borderColor='var(--p)'" ondragleave="this.style.borderColor='var(--bdr2)'" ondrop="handleCSVDrop(event)">
+              <div style="font-size:40px;opacity:.5">📁</div>
+              <div style="font-size:13px;font-weight:600;color:var(--tx2)">Arraste o arquivo CSV aqui</div>
+              <div style="font-size:11px;color:var(--tx3)">ou clique para selecionar</div>
+              <div style="font-size:10px;color:var(--tx3);margin-top:4px">Aceita .csv e .txt</div>
+              <input type="file" accept=".csv,.txt" style="display:none" onchange="handleCSVFile(this)">
+            </label>
+            <div id="upload-file-name" style="margin-top:8px;font-size:11px;color:var(--tx3)"></div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap">
             <button class="btn bp btn-sm" onclick="importarLeadsLote()">🚀 Importar e Delegar</button>
-            <button class="btn bg2 btn-sm" onclick="document.getElementById('imp-csv').value='';document.getElementById('imp-preview').innerHTML='<div style='font-size:32px;margin-bottom:8px'>📋</div>Cole o CSV abaixo para ver o preview'">🗑️ Limpar</button>
+            <button class="btn bg2 btn-sm" onclick="limparImport()">🗑️ Limpar</button>
             <div id="imp-status" style="font-size:11px;color:var(--tx3)"></div>
           </div>
         </div>
 
-        <!-- HISTORICO DE LOTES -->
+        <!-- HISTORICO -->
         <div class="cw">
           <div class="cw-h">📂 Historico de Importacoes</div>
           <div id="imp-historico"></div>
@@ -1520,14 +1547,19 @@ function nav(page, el, isMob=false) {
 
 function loadPage(page) {
   if(page==='painel') loadPainel();
-  else if(page==='pipeline') { renderPipeline(); }
-  else if(page==='leads') { renderLeadsTable(); }
-  else if(page==='atividades') { loadAtividades(); }
-  else if(page==='comissao') { loadComissao(); }
-  else if(page==='comunicados') { loadComunicados(); }
-  else if(page==='catalogo') { loadCatalogo(); }
-  else if(page==='comando') { loadComando(); }
-  else if(page==='config') { loadConfig(); }
+  else if(page==='pipeline') renderPipeline();
+  else if(page==='leads') renderLeadsTable();
+  else if(page==='atividades') loadAtividades();
+  else if(page==='comissao') loadComissao();
+  else if(page==='comunicados') loadComunicados();
+  else if(page==='catalogo') loadCatalogo();
+  else if(page==='comando') loadComando();
+  else if(page==='config') loadConfig();
+  else if(page==='perfil') loadPerfil();
+  else if(page==='templates') loadTemplates();
+  else if(page==='clientes') loadClientesAtivos();
+  else if(page==='ranking') loadRanking();
+  else if(page==='importar') loadImportar();
 }
 
 // ============ PAINEL ============
@@ -2878,7 +2910,8 @@ function renderHistoricoLotes() {
 }
 
 function previewCSV() {
-  const csv = document.getElementById('imp-csv').value.trim();
+  const csvEl = document.getElementById('imp-csv');
+  const csv = (importCSVData || (csvEl?csvEl.value:'')).trim();
   const el = document.getElementById('imp-preview');
   if(!el) return;
   if(!csv) { el.innerHTML='<div style="font-size:32px;margin-bottom:8px">📋</div>Cole o CSV abaixo para ver o preview'; return; }
@@ -2976,6 +3009,80 @@ async function importarLeadsLote() {
       await dbPost('osales_insights',{vendedora_id:vendedoraId,tipo:'alerta',titulo:'Novo lote atribuido: '+nomeLote,conteudo: ok+' leads de '+( nicho||'variados')+' foram atribuidos a voce. '+( obs?'Instrucao do gestor: '+obs:'Comece pelas abordagens de maior prioridade.'),lido:false});
     }
   } catch(e){ toast('Erro: '+e.message,'e'); statusEl.textContent=''; }
+}
+
+
+// ============ IMPORTAR - TAB + UPLOAD ============
+let importCSVData = '';
+
+function showImpTab(tab, el) {
+  document.getElementById('imp-tab-colar').style.display = tab==='colar'?'block':'none';
+  document.getElementById('imp-tab-upload').style.display = tab==='upload'?'block':'none';
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('on'));
+  if(el) el.classList.add('on');
+  if(tab==='colar') importCSVData = '';
+}
+
+function handleCSVFile(input) {
+  const file = input.files[0];
+  if(!file) return;
+  document.getElementById('upload-file-name').textContent = 'Arquivo: '+file.name+' ('+Math.round(file.size/1024)+'KB)';
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    importCSVData = e.target.result;
+    previewCSVData(importCSVData);
+    document.getElementById('upload-area').style.borderColor = 'var(--ok)';
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function handleCSVDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').style.borderColor = 'var(--bdr2)';
+  const file = e.dataTransfer.files[0];
+  if(!file) return;
+  const fakeInput = {files:[file]};
+  handleCSVFile(fakeInput);
+}
+
+function previewCSV() {
+  const csv = document.getElementById('imp-csv').value.trim();
+  importCSVData = '';
+  previewCSVData(csv);
+}
+
+function previewCSVData(csv) {
+  const el = document.getElementById('imp-preview');
+  if(!el) return;
+  if(!csv) { el.innerHTML='<div style="font-size:40px;opacity:.3">📋</div><div>Cole o CSV ou suba um arquivo</div>'; return; }
+  const lines = csv.split('\n').filter(l=>l.trim());
+  const total = Math.max(0, lines.length-1);
+  if(total===0) { el.innerHTML='<div style="font-size:40px;opacity:.3">⚠️</div><div>Nenhum lead detectado</div>'; return; }
+  const headers = lines[0].split(',').map(h=>h.trim().toLowerCase());
+  const temNome = headers.includes('nome');
+  const temTel = headers.includes('telefone');
+  const temDica = headers.includes('dica_prospeccao');
+  el.innerHTML = '<div style="text-align:center;margin-bottom:16px"><div style="font-size:42px;font-weight:900;color:var(--p3)">'+total+'</div><div style="font-size:11px;color:var(--tx3)">leads prontos para importar</div></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">'+
+    '<span class="bdg '+(temNome?'bok':'ber')+'">nome</span>'+
+    '<span class="bdg '+(temTel?'bok':'bwn')+'">telefone</span>'+
+    '<span class="bdg '+(temDica?'bok':'bgr')+'">dicas</span>'+
+    '</div>'+
+    '<div style="font-size:10px;color:var(--tx3);margin-bottom:6px">'+headers.length+' colunas: '+headers.slice(0,6).join(', ')+(headers.length>6?'...':'')+'</div>'+
+    (total>0?'<div style="font-size:10px;color:var(--tx2);background:var(--bg3);padding:8px;border-radius:6px">1o lead: <strong>'+lines[1].split(',')[0]+'</strong></div>':'');
+}
+
+function limparImport() {
+  const csvEl = document.getElementById('imp-csv');
+  if(csvEl) csvEl.value='';
+  importCSVData = '';
+  const fnEl = document.getElementById('upload-file-name');
+  if(fnEl) fnEl.textContent='';
+  const upArea = document.getElementById('upload-area');
+  if(upArea) upArea.style.borderColor='var(--bdr2)';
+  const el = document.getElementById('imp-preview');
+  if(el) el.innerHTML='<div style="font-size:40px;opacity:.3">📋</div><div>Cole o CSV ou suba um arquivo</div>';
+  document.getElementById('imp-status').textContent='';
 }
 
 // ============ BOOT ============
