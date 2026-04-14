@@ -1181,14 +1181,33 @@ tbody tr:last-child td{border-bottom:none}
 
 <!-- NOVA VENDEDORA MODAL -->
 <div class="mo" id="mo-vend">
-  <div class="mdl" style="max-width:420px">
-    <div class="mh"><span class="mt">Nova Vendedora</span><button class="mx" onclick="closeMo('mo-vend')">✕</button></div>
-    <div class="fg"><label class="fl">Nome Completo</label><input class="fi" type="text" id="nv-nome" placeholder="Nome"></div>
-    <div class="fg"><label class="fl">E-mail</label><input class="fi" type="email" id="nv-email" placeholder="email@exemplo.com"></div>
-    <div class="fg"><label class="fl">Senha</label><input class="fi" type="password" id="nv-senha" placeholder="Senha de acesso"></div>
+  <div class="mdl" style="max-width:480px">
+    <div class="mh"><span class="mt" id="mo-vend-title">Nova Vendedora</span><button class="mx" onclick="closeMo('mo-vend')">✕</button></div>
+    <input type="hidden" id="nv-id">
+    <div class="fr">
+      <div class="fg"><label class="fl">Nome Completo *</label><input class="fi" type="text" id="nv-nome" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">E-mail *</label><input class="fi" type="email" id="nv-email" placeholder="email@exemplo.com"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Senha *</label><input class="fi" type="password" id="nv-senha" placeholder="Minimo 6 caracteres"></div>
+      <div class="fg"><label class="fl">Telefone</label><input class="fi" type="text" id="nv-tel" placeholder="71999999999"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label class="fl">Fase</label>
+        <select class="fs" id="nv-fase">
+          <option value="validacao">Validacao (sem fixo)</option>
+          <option value="ote">OTE Ativo (com fixo)</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Fixo Mensal (R$)</label><input class="fi" type="number" id="nv-fixo" placeholder="600" value="300"></div>
+    </div>
+    <div class="fg"><label class="fl">Observacoes internas</label><textarea class="fa" id="nv-bio" style="min-height:56px" placeholder="Ex: Especialista em saude, faz plantao nos fins de semana..."></textarea></div>
+    <div style="background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:10px;font-size:11px;color:var(--tx2);margin-bottom:12px">
+      <strong style="color:var(--warn)">Remuneracao configurada:</strong> Fase Validacao = R$300 fixo + 15% comissao + 8% recorrencia. OTE = R$600 fixo + bonus de R$400 em 100% da meta de R$20k.
+    </div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
       <button class="btn bg2 btn-sm" onclick="closeMo('mo-vend')">Cancelar</button>
-      <button class="btn bp btn-sm" onclick="createVendedora()">Criar Acesso</button>
+      <button class="btn bp btn-sm" id="btn-salvar-vend" onclick="salvarVendedora()">Criar Acesso</button>
     </div>
   </div>
 </div>
@@ -1220,6 +1239,14 @@ tbody tr:last-child td{border-bottom:none}
       <button class="btn bg2 btn-sm" onclick="closeMo('mo-prod')">Cancelar</button>
       <button class="btn bp btn-sm" onclick="saveProd()">Salvar</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL DADOS VENDEDORA -->
+<div class="mo" id="mo-vend-dados">
+  <div class="mdl" style="max-width:680px;max-height:90vh;overflow-y:auto">
+    <div class="mh"><span class="mt" id="mo-vend-dados-nome">Dados da Vendedora</span><button class="mx" onclick="closeMo('mo-vend-dados')">✕</button></div>
+    <div id="mo-vend-dados-content"></div>
   </div>
 </div>
 
@@ -2022,20 +2049,32 @@ async function loadTeam() {
   const users = await dbGet('osales_users','?select=*&order=created_at.asc');
   const ativos = users.filter(u=>u.ativo&&u.role==='vendedora');
   const pendentes = users.filter(u=>!u.ativo);
-  document.getElementById('team-list').innerHTML = ativos.length ? ativos.map(u=>`
-    <div class="team-card">
-      <div class="team-av">${u.nome[0].toUpperCase()}</div>
-      <div class="team-info">
-        <div class="team-nm">${u.nome}</div>
-        <div class="team-em">${u.email}</div>
-        <div style="margin-top:4px;display:flex;gap:6px"><span class="${u.fase==='validacao'?'fase-val':'fase-ote'}">${u.fase==='validacao'?'Validação':'OTE'}</span>${u.fixo_ativo?`<span class="bdg bok">Fixo: ${fmtR(u.valor_fixo)}</span>`:''}</div>
-      </div>
-      <div class="team-actions">
-        <label class="toggle"><input type="checkbox" ${u.fixo_ativo?'checked':''} onchange="toggleFixo('${u.id}',this.checked)"><span class="toggle-sl"></span></label>
-        <button class="btn bd2 btn-xs" onclick="removeVend('${u.id}')">Remover</button>
-      </div>
-    </div>
-  `).join('') : '<div class="empty-state" style="padding:24px"><p>Nenhuma vendedora cadastrada</p></div>';
+  document.getElementById('team-list').innerHTML = ativos.length ? ativos.map(u=>{
+    const vLeads = allLeads.filter(l=>l.vendedora_id===u.id);
+    const vVendas = allVendas.filter(v=>v.vendedora_id===u.id);
+    const recMes = vVendas.filter(v=>v.created_at.startsWith(getMesAtual())).reduce((s,v)=>s+(v.valor_setup||0),0);
+    const foto = u.foto_url ? '<img src="'+u.foto_url+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">' : u.nome[0].toUpperCase();
+    return '<div class="cw" style="margin-bottom:10px">'+
+      '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">'+
+        '<div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--p2),var(--p3));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;font-family:Montserrat,sans-serif;flex-shrink:0;overflow:hidden;border:2px solid rgba(139,92,246,.3)">'+foto+'</div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="font-weight:700;font-size:14px">'+u.nome+'</div>'+
+          '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+u.email+'</div>'+
+          '<div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">'+
+            '<span class="'+(u.fase==='validacao'?'fase-val':'fase-ote')+'">'+(u.fase==='validacao'?'Validacao':'OTE Ativo')+'</span>'+
+            (u.fixo_ativo?'<span class="bdg bok">Fixo: '+fmtR(u.valor_fixo)+'</span>':'<span class="bdg bgr">Sem fixo</span>')+
+            '<span class="bdg bpu">'+vLeads.length+' leads</span>'+
+            '<span class="bdg bwn">'+fmtR(recMes)+' esse mes</span>'+
+          '</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'+
+          '<button class="btn bp btn-sm" onclick="verDadosVend(this.dataset.id)" data-id="'+u.id+'">📊 Ver Dados</button>'+
+          '<button class="btn bg2 btn-sm" onclick="editarVend(this.dataset.id)" data-id="'+u.id+'">✏️ Editar</button>'+
+          '<button class="btn bd2 btn-sm" onclick="removeVend(this.dataset.id)" data-id="'+u.id+'">🗑️ Remover</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('') : '<div class="empty-state" style="padding:24px"><div style="font-size:32px">👥</div><p>Nenhuma vendedora cadastrada ainda.<br>Clique em <strong>+ Nova Vendedora</strong> para adicionar.</p></div>';
 
   document.getElementById('pending-list').innerHTML = pendentes.length ? pendentes.map(u=>`
     <div class="team-card">
@@ -2346,22 +2385,6 @@ async function checkValidacao() {
 
 // ============ NEW VENDEDORA ============
 function openNewVendModal() { openMo('mo-vend'); }
-async function createVendedora() {
-  const nome = document.getElementById('nv-nome').value.trim();
-  const email = document.getElementById('nv-email').value.trim();
-  const senha = document.getElementById('nv-senha').value;
-  if(!nome||!email||!senha) { toast('Preencha todos os campos','w'); return; }
-  try {
-    const authId = null;
-    await dbPost('osales_users',{auth_id:authId,email,nome,senha,role:'vendedora',ativo:true,fixo_ativo:false,valor_fixo:600,fase:'validacao',vendas_validacao:0,receita_validacao:0});
-    closeMo('mo-vend');
-    document.getElementById('nv-nome').value='';
-    document.getElementById('nv-email').value='';
-    document.getElementById('nv-senha').value='';
-    await loadTeam();
-    toast('Vendedora criada! Ela já pode fazer login.','s');
-  } catch(e){ toast('Erro: '+e.message,'e'); }
-}
 
 // ============ PRODUTO MODAL ============
 function openProdModal() { document.getElementById('prod-edit-id').value=''; document.getElementById('mo-prod-title').textContent='Novo Produto'; document.querySelectorAll('#mo-prod .fi').forEach(el=>el.value=''); openMo('mo-prod'); }
@@ -3131,6 +3154,204 @@ function abrirInstagram(instagram) {
   return 'https://instagram.com/'+handle;
 }
 
+
+// ============ GESTAO DO TIME ============
+function openNewVendModal() {
+  document.getElementById('nv-id').value = '';
+  document.getElementById('nv-nome').value = '';
+  document.getElementById('nv-email').value = '';
+  document.getElementById('nv-senha').value = '';
+  document.getElementById('nv-tel').value = '';
+  document.getElementById('nv-fase').value = 'validacao';
+  document.getElementById('nv-fixo').value = '300';
+  document.getElementById('nv-bio').value = '';
+  document.getElementById('mo-vend-title').textContent = 'Nova Vendedora';
+  document.getElementById('btn-salvar-vend').textContent = 'Criar Acesso';
+  openMo('mo-vend');
+}
+
+function editarVend(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if(!u) return;
+  document.getElementById('nv-id').value = u.id;
+  document.getElementById('nv-nome').value = u.nome||'';
+  document.getElementById('nv-email').value = u.email||'';
+  document.getElementById('nv-senha').value = '';
+  document.getElementById('nv-tel').value = u.telefone||'';
+  document.getElementById('nv-fase').value = u.fase||'validacao';
+  document.getElementById('nv-fixo').value = u.valor_fixo||300;
+  document.getElementById('nv-bio').value = u.bio||'';
+  document.getElementById('mo-vend-title').textContent = 'Editar — '+u.nome;
+  document.getElementById('btn-salvar-vend').textContent = 'Salvar Alteracoes';
+  openMo('mo-vend');
+}
+
+async function salvarVendedora() {
+  const id = document.getElementById('nv-id').value;
+  const nome = document.getElementById('nv-nome').value.trim();
+  const email = document.getElementById('nv-email').value.trim();
+  const senha = document.getElementById('nv-senha').value;
+  const tel = document.getElementById('nv-tel').value.trim();
+  const fase = document.getElementById('nv-fase').value;
+  const fixo = +document.getElementById('nv-fixo').value||300;
+  const bio = document.getElementById('nv-bio').value.trim();
+
+  if(!nome||!email) { toast('Nome e email sao obrigatorios','w'); return; }
+  if(!id && !senha) { toast('Defina uma senha para o acesso','w'); return; }
+  if(!id && senha.length < 6) { toast('Senha precisa ter pelo menos 6 caracteres','w'); return; }
+
+  const data = {
+    nome, email, telefone:tel||null,
+    fase, valor_fixo:fixo,
+    fixo_ativo: fase==='ote',
+    bio:bio||null,
+    role:'vendedora', ativo:true
+  };
+  if(senha) data.senha = senha;
+
+  try {
+    if(id) {
+      // Editar existente
+      await dbPatch('osales_users', id, data);
+      const idx = allUsers.findIndex(u=>u.id===id);
+      if(idx>-1) allUsers[idx] = {...allUsers[idx], ...data};
+      toast('Vendedora atualizada!','s');
+    } else {
+      // Criar nova
+      const existe = allUsers.find(u=>u.email===email);
+      if(existe) { toast('Este e-mail ja esta cadastrado','w'); return; }
+      const r = await dbPost('osales_users', data);
+      if(r&&r[0]) allUsers.push(r[0]);
+      toast('Acesso criado! '+nome+' ja pode entrar com o email e senha definidos.','s');
+    }
+    closeMo('mo-vend');
+    loadTeam();
+    populateAssignSelect();
+  } catch(e) { toast('Erro: '+e.message,'e'); }
+}
+
+async function removeVend(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if(!u) return;
+  if(!confirm('Remover '+u.nome+' do time? Os leads e dados dela serao mantidos, mas ela nao conseguira mais acessar o sistema.')) return;
+  try {
+    await dbPatch('osales_users', id, {ativo:false});
+    const idx = allUsers.findIndex(x=>x.id===id);
+    if(idx>-1) allUsers[idx].ativo = false;
+    toast(u.nome+' removida do time','s');
+    loadTeam();
+  } catch(e) { toast('Erro: '+e.message,'e'); }
+}
+
+async function verDadosVend(id) {
+  const u = allUsers.find(x=>x.id===id);
+  if(!u) return;
+  document.getElementById('mo-vend-dados-nome').textContent = '📊 '+u.nome;
+  const el = document.getElementById('mo-vend-dados-content');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--tx3)">Carregando...</div>';
+  openMo('mo-vend-dados');
+
+  const mes = getMesAtual();
+  const semana = getSemana();
+  const vLeads = allLeads.filter(l=>l.vendedora_id===id);
+  const vAtvs = allAtividades.filter(a=>a.vendedora_id===id);
+  const vVendas = allVendas.filter(v=>v.vendedora_id===id);
+  const vPags = allPagamentos.filter(p=>p.vendedora_id===id);
+
+  // Mes atual
+  const vendasMes = vVendas.filter(v=>v.created_at.startsWith(mes));
+  const recMes = vendasMes.reduce((s,v)=>s+(v.valor_setup||0),0);
+  const comMes = vendasMes.reduce((s,v)=>s+(v.comissao_setup||0),0);
+  const atvsMes = vAtvs.filter(a=>a.created_at.startsWith(mes));
+  const abordMes = atvsMes.filter(a=>['mensagem','audio'].includes(a.tipo)).length;
+  const callsMes = atvsMes.filter(a=>a.tipo==='call').length;
+  const metaR = allMetas[mes]?.meta_receita||20000;
+  const pct = metaR>0?Math.min(100,(recMes/metaR*100)).toFixed(0):0;
+
+  // Pipeline
+  const stages = ['novo','abordado','conversa','call','proposta'];
+  const emAberto = vLeads.filter(l=>stages.includes(l.status)).length;
+  const fechados = vLeads.filter(l=>l.status==='fechado').length;
+  const perdidos = vLeads.filter(l=>l.status==='perdido').length;
+  const taxa = vLeads.length>0?((fechados/vLeads.length)*100).toFixed(0):0;
+
+  // Comissao total acumulada
+  const totalComAcum = vVendas.reduce((s,v)=>s+(v.comissao_setup||0)+(v.comissao_recorrencia_mensal||0),0);
+  const totalPago = vPags.filter(p=>p.status==='pago').reduce((s,p)=>s+(p.valor_total||0),0);
+
+  el.innerHTML = '<div class="mg" style="margin-bottom:16px">'+
+    [
+      {ic:'💰',l:'Receita esse mes',v:fmtR(recMes),s:pct+'% da meta'},
+      {ic:'💎',l:'Comissao esse mes',v:fmtR(comMes),s:'a receber'},
+      {ic:'📋',l:'Total de Leads',v:vLeads.length,s:emAberto+' em aberto'},
+      {ic:'✅',l:'Vendas Fechadas',v:fechados,s:taxa+'% conversao'},
+      {ic:'📨',l:'Abordagens (mes)',v:abordMes,s:callsMes+' calls'},
+      {ic:'🏆',l:'Comissao Acumulada',v:fmtR(totalComAcum),s:fmtR(totalPago)+' pago'},
+    ].map(k=>'<div class="mc"><div class="mi">'+k.ic+'</div><div class="ml">'+k.l+'</div><div class="mv">'+k.v+'</div><div class="md2">'+k.s+'</div></div>').join('') +
+  '</div>'+
+
+  // Meta progress
+  '<div class="cw" style="margin-bottom:12px">'+
+    '<div class="cw-h">🎯 Progresso da Meta — '+mes+'</div>'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">'+
+      '<div style="flex:1;background:var(--bg3);border-radius:4px;height:10px">'+
+        '<div style="width:'+pct+'%;background:linear-gradient(90deg,var(--p2),var(--p3));height:100%;border-radius:4px;transition:width .6s"></div>'+
+      '</div>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--p3)">'+pct+'%</span>'+
+    '</div>'+
+    '<div style="font-size:11px;color:var(--tx3)">'+fmtR(recMes)+' de '+fmtR(metaR)+'</div>'+
+  '</div>'+
+
+  // Fase e remuneracao
+  '<div class="cw" style="margin-bottom:12px">'+
+    '<div class="cw-h">💼 Remuneracao</div>'+
+    '<div class="fr">'+
+      '<div><div class="ml">Fase</div><div style="font-size:13px;margin-top:4px"><span class="'+(u.fase==='validacao'?'fase-val':'fase-ote')+'">'+(u.fase==='validacao'?'Validacao':'OTE Ativo')+'</span></div></div>'+
+      '<div><div class="ml">Fixo Mensal</div><div style="font-size:13px;font-weight:700;margin-top:4px">'+(u.fixo_ativo?fmtR(u.valor_fixo):'Nao ativo')+'</div></div>'+
+      '<div><div class="ml">Comissao</div><div style="font-size:13px;font-weight:700;margin-top:4px">15% setup + 8% recorr.</div></div>'+
+      '<div><div class="ml">Total Pago</div><div style="font-size:13px;font-weight:700;color:var(--ok);margin-top:4px">'+fmtR(totalPago)+'</div></div>'+
+    '</div>'+
+  '</div>'+
+
+  // Pipeline breakdown
+  '<div class="cw" style="margin-bottom:12px">'+
+    '<div class="cw-h">🎯 Pipeline Atual</div>'+
+    ['novo','abordado','conversa','call','proposta','fechado','perdido'].map(s=>{
+      const qtd = vLeads.filter(l=>l.status===s).length;
+      const pctS = vLeads.length>0?Math.round(qtd/vLeads.length*100):0;
+      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'+
+        '<span style="width:80px;font-size:11px;color:var(--tx2)">'+s.charAt(0).toUpperCase()+s.slice(1)+'</span>'+
+        '<div style="flex:1;background:var(--bg3);border-radius:3px;height:6px">'+
+          '<div style="width:'+pctS+'%;background:var(--p);height:100%;border-radius:3px"></div>'+
+        '</div>'+
+        '<span style="font-size:11px;font-weight:700;width:20px;text-align:right">'+qtd+'</span>'+
+      '</div>';
+    }).join('') +
+  '</div>'+
+
+  // Ultimas atividades
+  '<div class="cw">'+
+    '<div class="cw-h">📝 Ultimas Atividades</div>'+
+    (vAtvs.slice(0,10).length ? vAtvs.slice(0,10).map(a=>{
+      const l = allLeads.find(x=>x.id===a.lead_id);
+      return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr)">'+
+        '<span style="font-size:16px">'+({mensagem:'💬',audio:'🎤',call:'📞',proposta:'📄',followup:'🔄',venda:'💰',perda:'❌',nota:'📝'}[a.tipo]||'📝')+'</span>'+
+        '<div style="flex:1"><div style="font-size:12px;font-weight:600">'+(l?l.nome:'Lead removido')+'</div>'+
+        '<div style="font-size:11px;color:var(--tx3)">'+(a.notas?a.notas.slice(0,60)+'...':'')+'</div></div>'+
+        '<div style="font-size:10px;color:var(--tx3);white-space:nowrap">'+fmtDate(a.created_at)+'</div>'+
+      '</div>';
+    }).join('') : '<div style="font-size:12px;color:var(--tx3);padding:12px 0">Nenhuma atividade registrada</div>')+
+  '</div>'+
+
+  // Botoes de acao
+  '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">'+
+    '<button class="btn bp btn-sm" data-id="'+id+'" onclick="fecharDadosEditar(this)">✏️ Editar Vendedora</button>'+
+    '<button class="btn bg2 btn-sm" data-id="'+id+'" onclick="fecharDadosRemover(this)">🗑️ Remover do Time</button>'+
+  '</div>';
+}
+
+function fecharDadosEditar(btn){ closeMo('mo-vend-dados'); editarVend(btn.dataset.id); }
+function fecharDadosRemover(btn){ closeMo('mo-vend-dados'); removeVend(btn.dataset.id); }
 // ============ BOOT ============
 document.addEventListener('DOMContentLoaded', () => {
   const splash = document.getElementById('intro-splash');
