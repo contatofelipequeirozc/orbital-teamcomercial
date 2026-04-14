@@ -715,7 +715,7 @@ tbody tr:last-child td{border-bottom:none}
           <div id="import-resultado" style="margin-top:10px;font-size:11px"></div>
         </div>
         <div class="tw">
-          <table><thead><tr><th>⭐</th><th>Nome</th><th>Empresa</th><th>Nível</th><th>Produto</th><th>Valor</th><th>Prob.</th><th>Status</th><th>Vendedora</th><th>Próx. Ação</th></tr></thead>
+          <table><thead><tr><th>⭐</th><th>Nome</th><th>Empresa</th><th>Nível</th><th>Produto</th><th>Valor</th><th>Prob.</th><th>Status</th><th>Contato</th><th>Vendedora</th><th>Próx. Ação</th></tr></thead>
           <tbody id="leads-table-body"></tbody></table>
         </div>
       </div>
@@ -841,7 +841,7 @@ tbody tr:last-child td{border-bottom:none}
           <div class="cw-h" style="color:var(--ok)">📋 Template CSV — Como usar com o Claude</div>
           <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.7">
             Abra uma conversa nova no Claude e diga:<br>
-            <span style="background:var(--pd);color:var(--p3);padding:6px 10px;border-radius:6px;display:inline-block;margin-top:4px;font-size:11px;font-style:italic">"Gere 20 leads de clinicas de estetica em Salvador no formato CSV abaixo, com dicas reais e personalizadas de abordagem e rapport para cada lead"</span>
+            <span style="background:var(--pd);color:var(--p3);padding:6px 10px;border-radius:6px;display:inline-block;margin-top:4px;font-size:11px;font-style:italic">"Gere 20 leads de [nicho] em [cidade]. Para cada um coloque nome do responsavel, empresa, telefone, instagram (busque no Google Meu Negocio), cidade, segmento, cargo, dor_principal, melhor_horario, dica_prospeccao personalizada e dica_rapport. Use o formato CSV com as colunas abaixo."</span>
           </div>
           <div style="background:var(--bg3);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:10px;color:var(--p3);border:1px solid rgba(139,92,246,.15);overflow-x:auto;white-space:nowrap">nome,empresa,telefone,email,instagram,cidade,segmento,cargo,tamanho_empresa,dor_principal,melhor_horario,dica_prospeccao,dica_rapport,notas</div>
           <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--tx3)">
@@ -1257,8 +1257,8 @@ tbody tr:last-child td{border-bottom:none}
 
 <script>
 // ============ SUPABASE CONFIG ============
-const SURL = 'https://rhdivxbjbphfglbdbiwo.supabase.co';
-const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJoZGl2eGJqYnBoZmdsYmRiaXdvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNTIyNDksImV4cCI6MjA4ODkyODI0OX0.sSoaDCKsiNuI80dlQcz9EYWcgiNLeK2jh9UCxKa949M';
+const SURL = 'https://zjtqvcfztxwbasxltzfh.supabase.co';
+const SKEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqdHF2Y2Z6dHh3YmFzeGx0emZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1ODcyNTcsImV4cCI6MjA5MTE2MzI1N30.YTYsCSkDE2fHsa0HnX1daDe1UvXJqCfVvx8B_NpIJG8';
 const ADMIN_EMAIL = 'orbitalvideos@hotmail.com';
 const { createClient } = supabase;
 const sb = createClient(SURL, SKEY);
@@ -1307,14 +1307,14 @@ let curPage = 'painel';
 async function init() {
   const saved = localStorage.getItem('os-theme');
   if(saved) { document.documentElement.setAttribute('data-theme', saved); const t = document.getElementById('theme-toggle'); if(t) t.checked = saved === 'light'; }
-  const session = localStorage.getItem('os-session');
+  const session = localStorage.getItem('os-session-v2');
   if(session) {
     try {
       const parsed = JSON.parse(session);
       const rows = await dbGet('osales_users', '?id=eq.' + parsed.id + '&ativo=eq.true&select=*');
       if(rows.length) { curProfile = rows[0]; curUser = { id: rows[0].id, email: rows[0].email }; startApp(); return; }
     } catch(e) {}
-    localStorage.removeItem('os-session');
+    localStorage.removeItem('os-session-v2');
   }
   showLogin();
 }
@@ -1666,6 +1666,10 @@ function cardHTML(l) {
       <span class="kc-vl">${l.valor_potencial?fmtR(l.valor_potencial):''}</span>
       <span class="kc-dt">${dias>3?'<span style="color:var(--err)" title="Esfriando!">🧊</span>':''} ${vend?vend.nome.split(' ')[0]:''} · ${dias}d</span>
     </div>
+    <div style="display:flex;gap:4px;margin-top:6px" onclick="event.stopPropagation()">
+      ${l.telefone?'<a href="'+abrirWhatsApp(l)+'" target="_blank" onclick="event.stopPropagation()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px;background:#25D366;color:#fff;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none">💬 Zap</a>':''}
+      ${l.instagram?'<a href="'+abrirInstagram(l.instagram)+'" target="_blank" onclick="event.stopPropagation()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:4px;padding:4px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);color:#fff;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none">📸 Insta</a>':''}
+    </div>
     <div style="margin-top:6px;display:flex;align-items:center;gap:6px">
       <div style="flex:1;background:var(--bg3);border-radius:3px;height:3px">
         <div style="width:${l.probabilidade||10}%;background:${(l.probabilidade||10)>=80?'var(--ok)':(l.probabilidade||10)>=50?'var(--warn)':'var(--p)'};height:100%;border-radius:3px"></div>
@@ -1747,6 +1751,10 @@ function renderLeadsTable() {
       <td>${l.valor_potencial?fmtR(l.valor_potencial):'—'}</td>
       <td><span style="font-size:11px;font-weight:700;color:${(l.probabilidade||10)>=80?'var(--ok)':(l.probabilidade||10)>=50?'var(--warn)':'var(--p3)'}">${l.probabilidade||10}%</span></td>
       <td>${statusBadge(l.status)}</td>
+      <td style="white-space:nowrap">
+        ${l.telefone?'<a href="'+abrirWhatsApp(l)+'" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:3px 7px;background:#25D366;color:#fff;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none;margin-right:4px">💬</a>':''}
+        ${l.instagram?'<a href="'+abrirInstagram(l.instagram)+'" target="_blank" style="display:inline-flex;align-items:center;gap:3px;padding:3px 7px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);color:#fff;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none">📸</a>':''}
+      </td>
       <td>${vend?vend.nome.split(' ')[0]:'—'}</td>
       <td>${l.proximo_contato?fmtDate(l.proximo_contato):'—'}</td>
     </tr>`;
@@ -2228,12 +2236,18 @@ function openLeadDetail(id) {
       ${prod?`<div><div class="ml">Produto</div><div style="font-size:12px">${prod.nome}</div></div>`:''}
       ${vend?`<div><div class="ml">Vendedora</div><div style="font-size:12px">${vend.nome}</div></div>`:''}
       ${l.proximo_contato?`<div><div class="ml">Próx. Contato</div><div style="font-size:12px">${fmtDate(l.proximo_contato)}</div></div>`:''}
+      ${l.instagram?`<div><div class="ml">Instagram</div><div style="font-size:12px"><a href="${abrirInstagram(l.instagram)}" target="_blank" style="color:var(--p3)">${l.instagram}</a></div></div>`:''}
+      ${l.cargo?`<div><div class="ml">Cargo</div><div style="font-size:12px">${l.cargo}</div></div>`:''}
+      ${l.dor_principal?`<div><div class="ml">Dor Principal</div><div style="font-size:12px;color:var(--warn)">${l.dor_principal}</div></div>`:''}
+      ${l.melhor_horario?`<div><div class="ml">Melhor Horário</div><div style="font-size:12px">${l.melhor_horario}</div></div>`:''}
     </div>
     ${l.notas?`<div class="fg"><div class="ml">Notas</div><div style="font-size:12px;color:var(--tx2);line-height:1.5">${l.notas}</div></div>`:''}
     <div style="display:flex;gap:8px;margin:14px 0;flex-wrap:wrap">
       <button class="btn bg2 btn-sm" onclick="closeMo('mo-lead-detail');openLeadModal('${id}')">✏️ Editar</button>
       <button class="btn bp btn-sm" onclick="closeMo('mo-lead-detail');openAtvFromLead('${id}')">+ Atividade</button>
       <button class="btn bs2 btn-sm" onclick="closeMo('mo-lead-detail');openVendaFromLead('${id}')">💰 Venda</button>
+      ${l.telefone ? '<a class="btn btn-sm" style="background:#25D366;color:#fff;text-decoration:none" href="' + abrirWhatsApp(l) + '" target="_blank">💬 WhatsApp</a>' : ''}
+      ${l.instagram ? '<a class="btn btn-sm" style="background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;text-decoration:none" href="' + abrirInstagram(l.instagram) + '" target="_blank">📸 Instagram</a>' : ''}
     </div>
     <div id="lead-scripts-wrap" style="margin-bottom:14px"></div>
     <div class="cw-h" style="margin-bottom:10px">📋 Atividades (${ativs.length})</div>
@@ -2499,7 +2513,7 @@ async function doLogin() {
     curProfile = user;
     curUser = { id: user.id, email: user.email };
     // Salva sessão no localStorage
-    localStorage.setItem('os-session', JSON.stringify({ id: user.id, email: user.email }));
+    localStorage.setItem('os-session-v2', JSON.stringify({ id: user.id, email: user.email }));
     await startApp();
   } catch(e) { showErr('Erro: '+e.message); }
 }
@@ -2521,7 +2535,7 @@ function showErr(msg) { const el=document.getElementById('login-err'); el.textCo
 function showLoginForm() { document.getElementById('login-form').classList.remove('hide'); document.getElementById('req-form').classList.remove('on'); }
 function showReqForm() { document.getElementById('login-form').classList.add('hide'); document.getElementById('req-form').classList.add('on'); }
 function showLogin() { document.getElementById('loading').style.display='none'; document.getElementById('login-screen').style.display='flex'; }
-function doLogout() { localStorage.removeItem('os-session'); curUser=null; curProfile=null; document.getElementById('app').style.display='none'; showLogin(); }
+function doLogout() { localStorage.removeItem('os-session-v2'); curUser=null; curProfile=null; document.getElementById('app').style.display='none'; showLogin(); }
 
 // ============ UI HELPERS ============
 function toggleSB() { document.getElementById('sb').classList.toggle('c'); }
@@ -3083,6 +3097,38 @@ function limparImport() {
   const el = document.getElementById('imp-preview');
   if(el) el.innerHTML='<div style="font-size:40px;opacity:.3">📋</div><div>Cole o CSV ou suba um arquivo</div>';
   document.getElementById('imp-status').textContent='';
+}
+
+
+// ============ WHATSAPP + INSTAGRAM HELPERS ============
+function abrirWhatsApp(l) {
+  // Clean phone number - remove everything except digits
+  const tel = (l.telefone||'').replace(/\D/g,'');
+  // Add Brazil country code if not present
+  const num = tel.startsWith('55') ? tel : '55'+tel;
+  // Build personalized first message
+  const nome = l.nome ? l.nome.split(' ')[0] : '';
+  const empresa = l.empresa ? ' da '+l.empresa : '';
+  const prod = allProdutos.find(p=>p.id===l.produto_interesse);
+  // Short, natural message - no walls of text
+  let msg = '';
+  if(prod) {
+    const nomeProd = prod.nome.split(' ').slice(0,2).join(' ');
+    msg = 'Oi '+nome+''+empresa+'! Tudo bem? Vi que voce pode se interessar pelo '+nomeProd+' da Universe Orbital. Posso te mostrar como funciona em 5 minutos?';
+  } else {
+    msg = 'Oi '+nome+''+empresa+'! Tudo bem? Aqui e Felipe da Universe Orbital, trabalho com automacao e IA para negocios. Posso te apresentar uma solucao rapida?';
+  }
+  return 'https://wa.me/'+num+'?text='+encodeURIComponent(msg);
+}
+
+function abrirInstagram(instagram) {
+  // Clean handle - remove @ and spaces, handle full URLs
+  let handle = (instagram||'').trim();
+  if(handle.includes('instagram.com/')) {
+    handle = handle.split('instagram.com/')[1].split('/')[0].split('?')[0];
+  }
+  handle = handle.replace('@','').replace(/\s/g,'');
+  return 'https://instagram.com/'+handle;
 }
 
 // ============ BOOT ============
