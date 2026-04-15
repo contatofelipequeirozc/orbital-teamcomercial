@@ -4,7 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Orbital Sales</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='13' cy='16' r='7' fill='%238b5cf6'/%3E%3Cellipse cx='13' cy='16' rx='12' ry='4.5' fill='none' stroke='%23a78bfa' stroke-width='1.5' transform='rotate(-30 13 16)'/%3E%3Ccircle cx='21' cy='8' r='2' fill='%23a78bfa'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3CradialGradient id='pg' cx='40%25' cy='35%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23c4b5fd'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='9' fill='url(%23pg)'/%3E%3Cellipse cx='16' cy='16' rx='15' ry='5' fill='none' stroke='%23a78bfa' stroke-width='1.8' transform='rotate(-25 16 16)' opacity='.9'/%3E%3Ccircle cx='16' cy='10' r='3' fill='%23c4b5fd' opacity='.4'/%3E%3C/svg%3E" type="image/svg+xml">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%23030303'/%3E%3Cdefs%3E%3CradialGradient id='pg2' cx='40%25' cy='35%25' r='65%25'%3E%3Cstop offset='0%25' stop-color='%23c4b5fd'/%3E%3Cstop offset='100%25' stop-color='%237c3aed'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='90' cy='90' r='52' fill='url(%23pg2)'/%3E%3Cellipse cx='90' cy='90' rx='85' ry='28' fill='none' stroke='%23a78bfa' stroke-width='9' transform='rotate(-25 90 90)' opacity='.9'/%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Orbital Sales">
+<meta name="theme-color" content="#030303">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -1041,11 +1046,22 @@ tbody tr:last-child td{border-bottom:none}
 
   <!-- MOBILE BOTTOM NAV -->
   <nav class="mob-nav" id="mob-nav-bar">
-    <button class="mob-nav-btn on" onclick="nav('painel',this,true)"><span class="ic">🏠</span>Painel</button>
-    <button class="mob-nav-btn" onclick="nav('pipeline',this,true)"><span class="ic">🎯</span>Pipeline</button>
-    <button class="mob-nav-btn" onclick="nav('leads',this,true)"><span class="ic">📋</span>Leads</button>
-    <button class="mob-nav-btn" onclick="nav('comissao',this,true)"><span class="ic">💰</span>Comissao</button>
-    <button class="mob-nav-btn" onclick="toggleMobMenu()"><span class="ic">☰</span>Menu</button>
+    <!-- Vendedora nav (default) -->
+    <div id="mob-nav-vend" style="display:flex;flex:1;justify-content:space-around;width:100%">
+      <button class="mob-nav-btn on" onclick="nav('painel',this,true)"><span class="ic">🏠</span>Painel</button>
+      <button class="mob-nav-btn" onclick="nav('pipeline',this,true)"><span class="ic">🎯</span>Pipeline</button>
+      <button class="mob-nav-btn" onclick="nav('leads',this,true)"><span class="ic">📋</span>Leads</button>
+      <button class="mob-nav-btn" onclick="nav('comissao',this,true)"><span class="ic">💰</span>Ganhos</button>
+      <button class="mob-nav-btn" onclick="toggleMobMenu()"><span class="ic">☰</span>Menu</button>
+    </div>
+    <!-- Gestor nav (hidden until login) -->
+    <div id="mob-nav-gest" style="display:none;flex:1;justify-content:space-around;width:100%">
+      <button class="mob-nav-btn on" onclick="nav('comando',this,true)"><span class="ic">📊</span>Central</button>
+      <button class="mob-nav-btn" onclick="nav('leads',this,true)"><span class="ic">📋</span>Leads</button>
+      <button class="mob-nav-btn" onclick="nav('pipeline',this,true)"><span class="ic">🎯</span>Pipeline</button>
+      <button class="mob-nav-btn" onclick="nav('ranking',this,true)"><span class="ic">🏆</span>Ranking</button>
+      <button class="mob-nav-btn" onclick="toggleMobMenu()"><span class="ic">☰</span>Menu</button>
+    </div>
   </nav>
   <div class="mob-menu-drawer" id="mob-drawer">
     <button class="mob-menu-item" onclick="nav('atividades',null,true);toggleMobMenu()"><span>📝</span> Atividades</button>
@@ -1437,6 +1453,13 @@ function setupUI() {
   // Build sidebar nav based on role
   window._defaultPage = curProfile.role === 'gestor' ? 'comando' : 'painel';
   setupSidebar();
+  const _mvend = document.getElementById('mob-nav-vend');
+  const _mgest = document.getElementById('mob-nav-gest');
+  if(curProfile.role==='gestor'){ if(_mvend) _mvend.style.display='none'; if(_mgest) _mgest.style.display='flex'; } else { if(_mvend) _mvend.style.display='flex'; if(_mgest) _mgest.style.display='none'; }
+  // Switch mobile nav
+  const mvend = document.getElementById('mob-nav-vend');
+  const mgest = document.getElementById('mob-nav-gest');
+  if(curProfile.role==='gestor'){ if(mvend) mvend.style.display='none'; if(mgest) mgest.style.display='flex'; } else { if(mvend) mvend.style.display='flex'; if(mgest) mgest.style.display='none'; }
 
   const avEl = document.getElementById('user-av');
   if(curProfile.foto_url) {
@@ -2189,6 +2212,10 @@ function openLeadModal(id=null) {
     if(nichoSel && l.nicho) {
       Array.from(nichoSel.options).forEach(o=>{ if(o.textContent.includes(l.nicho)) nichoSel.value=o.value; });
     }
+    const igEl2 = document.getElementById('ld-instagram');
+    if(igEl2) igEl2.value = l.instagram||'';
+    const igEl = document.getElementById('ld-instagram');
+    if(igEl) igEl.value = l.instagram||'';
     const dp = document.getElementById('ld-dica-prosp');
     const dr = document.getElementById('ld-dica-rapport');
     if(dp) dp.value = l.dica_prospeccao||'';
@@ -2228,6 +2255,8 @@ async function saveLead() {
     proximo_contato:document.getElementById('ld-proximo').value||null,
     notas:document.getElementById('ld-notas').value.trim(),
     motivo_perda:document.getElementById('ld-motivo').value.trim()||null,
+    instagram:document.getElementById('ld-instagram')?.value.trim()||null,
+    instagram:document.getElementById('ld-instagram')?.value.trim()||null,
     nicho:nichoSel ? nichoSel.options[nichoSel.selectedIndex]?.text : null,
     dica_prospeccao:document.getElementById('ld-dica-prosp')?.value.trim()||null,
     dica_rapport:document.getElementById('ld-dica-rapport')?.value.trim()||null,
@@ -2750,45 +2779,6 @@ function loadRanking() {
 }
 
 // ============ CLIENTES ATIVOS ============
-async function loadClientesAtivos() {
-  const el = document.getElementById('clientes-ativos-list');
-  if(!el) return;
-  const meus = curProfile.role==='gestor' ? allClientesAtivos : allClientesAtivos.filter(c=>c.vendedora_id===curProfile.id);
-  if(!meus.length) {
-    el.innerHTML='<div class="empty-state"><div class="es-ic">🤝</div><p>Nenhum cliente ativo ainda.<br>Clientes aparecem aqui quando uma venda é fechada.</p></div>';
-    return;
-  }
-  const hoje = new Date().toISOString().split('T')[0];
-  el.innerHTML = meus.map(c=>{
-    const l = allLeads.find(x=>x.id===c.lead_id);
-    const p = allProdutos.find(x=>x.id===c.produto_id);
-    const v = allUsers.find(x=>x.id===c.vendedora_id);
-    const atrasado = c.proximo_checkin && c.proximo_checkin < hoje;
-    return `<div class="cw" style="margin-bottom:12px;border-left:3px solid ${c.status==='ativo'?'var(--ok)':c.status==='churn_risco'?'var(--warn)':'var(--err)'}">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-size:14px;font-weight:700">${l?l.nome:'Cliente'}</div>
-          <div style="font-size:11px;color:var(--tx3);margin-top:2px">${l?.empresa||''} · ${p?p.nome:''} · ${fmtR(c.valor_mensal)}/mês</div>
-          ${v&&curProfile.role==='gestor'?`<div style="font-size:10px;color:var(--tx3)">Vendedora: ${v.nome}</div>`:''}
-        </div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-          <span class="bdg ${c.status==='ativo'?'bok':c.status==='churn_risco'?'bwn':'ber'}">${c.status==='ativo'?'Ativo':c.status==='churn_risco'?'Risco Churn':'Churned'}</span>
-          <select class="fs" style="padding:4px 24px 4px 8px;font-size:11px" onchange="updateClienteStatus('${c.id}',this.value)">
-            <option value="ativo" ${c.status==='ativo'?'selected':''}>Ativo</option>
-            <option value="churn_risco" ${c.status==='churn_risco'?'selected':''}>Risco Churn</option>
-            <option value="churned" ${c.status==='churned'?'selected':''}>Churned</option>
-          </select>
-        </div>
-      </div>
-      <div style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tx2)">
-        <span>📅 Próx. check-in: <strong style="color:${atrasado?'var(--err)':'var(--tx)'}">${c.proximo_checkin?fmtDate(c.proximo_checkin):'Não definido'}${atrasado?' ⚠️':''}</strong></span>
-        <input type="date" class="fi" style="padding:4px 8px;font-size:11px;width:140px" value="${c.proximo_checkin||''}" onchange="updateCheckin('${c.id}',this.value)">
-      </div>
-      ${c.notas?`<div style="margin-top:8px;font-size:11px;color:var(--tx3)">${c.notas}</div>`:''}
-    </div>`;
-  }).join('');
-}
-
 async function updateClienteStatus(id, status) {
   try { await dbPatch('osales_clientes_ativos',id,{status}); const c=allClientesAtivos.find(x=>x.id===id); if(c) c.status=status; toast('Status atualizado','s'); } catch(e){ toast('Erro','e'); }
 }
@@ -3352,6 +3342,79 @@ async function verDadosVend(id) {
 
 function fecharDadosEditar(btn){ closeMo('mo-vend-dados'); editarVend(btn.dataset.id); }
 function fecharDadosRemover(btn){ closeMo('mo-vend-dados'); removeVend(btn.dataset.id); }
+
+async function loadClientesAtivos() {
+  const el = document.getElementById('clientes-ativos-list');
+  if(!el) return;
+  const meus = curProfile.role==='gestor' ? allClientesAtivos : allClientesAtivos.filter(c=>c.vendedora_id===curProfile.id);
+  if(!meus.length) {
+    el.innerHTML='<div class="empty-state"><div class="es-ic">🤝</div><p>Nenhum cliente ativo ainda.<br>Clientes aparecem aqui quando uma venda e fechada.</p></div>';
+    return;
+  }
+  const hoje = new Date().toISOString().split('T')[0];
+  const rows = meus.map(function(c) {
+    const l = allLeads.find(function(x){return x.id===c.lead_id;});
+    const p = allProdutos.find(function(x){return x.id===c.produto_id;});
+    const v = allUsers.find(function(x){return x.id===c.vendedora_id;});
+    const atrasado = c.proximo_checkin && c.proximo_checkin < hoje;
+    const tel = l && l.telefone ? l.telefone : '';
+    const insta = l && l.instagram ? l.instagram : '';
+    const nome = l ? l.nome : 'Cliente';
+    const empresa = l && l.empresa ? l.empresa : '';
+    const statusCor = c.status==='ativo'?'var(--ok)':c.status==='churn_risco'?'var(--warn)':'var(--err)';
+    const statusLabel = c.status==='ativo'?'Ativo':c.status==='churn_risco'?'Risco Churn':'Churned';
+    const statusClass = c.status==='ativo'?'bok':c.status==='churn_risco'?'bwn':'ber';
+
+    let html = '<div class="cw" style="margin-bottom:10px;border-left:3px solid '+statusCor+'">';
+    // Header
+    html += '<div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">';
+    html += '<div style="flex:1;min-width:0">';
+    html += '<div style="font-size:14px;font-weight:700">'+nome+'</div>';
+    html += '<div style="font-size:11px;color:var(--tx3);margin-top:2px">'+empresa+(p?' · '+p.nome:'')+' · '+fmtR(c.valor_mensal)+'/mes</div>';
+    if(v && curProfile.role==='gestor') html += '<div style="font-size:10px;color:var(--tx3);margin-top:2px">Vendedora: '+v.nome+'</div>';
+    html += '</div>';
+    html += '<span class="bdg '+statusClass+'">'+statusLabel+'</span>';
+    html += '</div>';
+    // WhatsApp + Instagram buttons
+    if(tel || insta) {
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">';
+      if(tel) html += '<a href="'+abrirWhatsApp(l)+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:#25D366;color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none">💬 WhatsApp</a>';
+      if(insta) html += '<a href="'+abrirInstagram(insta)+'" target="_blank" style="display:inline-flex;align-items:center;gap:5px;padding:8px 14px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none">📸 Instagram</a>';
+      html += '</div>';
+    }
+    // Contact info
+    if(tel || insta) {
+      html += '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tx3);margin-bottom:8px">';
+      if(tel) html += '<span>📞 '+tel+'</span>';
+      if(insta) html += '<span>📸 '+insta+'</span>';
+      html += '</div>';
+    }
+    // Status + checkin
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">';
+    html += '<select class="fs" style="padding:5px 24px 5px 8px;font-size:11px" onchange="salvarStatusCliente(this)">';
+    html += '<option value="ativo|'+c.id+'"'+(c.status==='ativo'?' selected':'')+'>Ativo</option>';
+    html += '<option value="churn_risco|'+c.id+'"'+(c.status==='churn_risco'?' selected':'')+'>Risco Churn</option>';
+    html += '<option value="churned|'+c.id+'"'+(c.status==='churned'?' selected':'')+'>Churned</option>';
+    html += '</select>';
+    html += '<span style="font-size:11px;color:var(--tx2)">📅 Check-in:</span>';
+    html += '<input type="date" class="fi" style="padding:4px 8px;font-size:11px;width:140px" value="'+(c.proximo_checkin||'')+'" onchange="salvarCheckin(this)" data-id="'+c.id+'">';
+    if(atrasado) html += '<span style="font-size:11px;color:var(--err)">⚠️ Atrasado</span>';
+    html += '</div>';
+    if(c.notas) html += '<div style="margin-top:8px;font-size:11px;color:var(--tx3)">'+c.notas+'</div>';
+    html += '</div>';
+    return html;
+  });
+  el.innerHTML = rows.join('');
+}
+
+function salvarStatusCliente(sel) {
+  const parts = sel.value.split('|');
+  if(parts.length===2) updateClienteStatus(parts[1], parts[0]);
+}
+function salvarCheckin(inp) {
+  updateCheckin(inp.dataset.id, inp.value);
+}
+
 // ============ BOOT ============
 document.addEventListener('DOMContentLoaded', () => {
   const splash = document.getElementById('intro-splash');
